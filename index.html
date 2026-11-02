@@ -24,14 +24,9 @@
 
   <div class="card">
     <h3>BLE 车控工具</h3>
-    <div id="statusBox" class="status-box">正在检查授权状态...</div>
+    <div id="statusBox" class="status-box">✅ 已授权 · 无限制使用</div>
 
     <button id="btn">连接并执行操作</button>
-    
-    <div id="activateArea" style="display:none; margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px;">
-      <input type="text" id="keyInput" placeholder="请输入购买的密钥 (如: KEY-20261231-XXXX)">
-      <button id="activateBtn" style="background: #28a745;">激活软件</button>
-    </div>
 
     <div id="logContainer">
       <div class="log-header">
@@ -46,16 +41,10 @@
     const btn = document.getElementById('btn');
     const log = document.getElementById('log');
     const statusBox = document.getElementById('statusBox');
-    const activateArea = document.getElementById('activateArea');
-    const keyInput = document.getElementById('keyInput');
-    const activateBtn = document.getElementById('activateBtn');
     const copyLogBtn = document.getElementById('copyLogBtn');
 
     const SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
     const TX_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
-
-    // 免费试用天数配置（例如：给新用户 3 天免费试用期）
-    const FREE_DAYS = 3;
 
     let logContent = "等待操作...\n";
 
@@ -79,89 +68,13 @@
       });
     });
 
-    // 检查本地授权和免费时间
+    // 授权检查：已移除卡密限制，始终放行
     function checkPermission() {
-      const savedKey = localStorage.getItem('tool_license_key');
-      
-      if (savedKey) {
-        try {
-          const parts = savedKey.split('-');
-          if (parts.length === 3 && parts[0] === 'KEY') {
-            const expireDateStr = parts[1];
-            const expireDate = new Date(
-              expireDateStr.slice(0,4),
-              expireDateStr.slice(4,6) - 1,
-              expireDateStr.slice(6,8)
-            );
-            const today = new Date();
-            
-            if (today <= expireDate) {
-              statusBox.innerText = `✅ 已激活会员 (有效期至: ${expireDateStr.slice(0,4)}-${expireDateStr.slice(4,6)}-${expireDateStr.slice(6,8)})`;
-              activateArea.style.display = 'none';
-              btn.disabled = false;
-              btn.style.background = '#007bff';
-              return true;
-            }
-          }
-        } catch (e) {}
-      }
-
-      let firstVisitTime = localStorage.getItem('tool_first_visit');
-      const now = new Date().getTime();
-
-      if (!firstVisitTime) {
-        localStorage.setItem('tool_first_visit', now);
-        firstVisitTime = now;
-      }
-
-      const passedDays = (now - parseInt(firstVisitTime)) / (1000 * 60 * 60 * 24);
-      const remainingDays = Math.ceil(FREE_DAYS - passedDays);
-
-      if (passedDays < FREE_DAYS) {
-        statusBox.innerText = `🎁 免费试用中 (剩余试用时间约: ${remainingDays} 天)`;
-        activateArea.style.display = 'block';
-        btn.disabled = false;
-        btn.style.background = '#007bff';
-        return true;
-      } else {
-        statusBox.innerText = `⚠️ 免费试用已结束，请获取密钥继续使用 (5元/3个月，10元/年)`;
-        activateArea.style.display = 'block';
-        btn.disabled = true;
-        btn.style.background = '#ccc';
-        return false;
-      }
+      statusBox.innerText = '✅ 已授权 · 无限制使用';
+      btn.disabled = false;
+      btn.style.background = '#007bff';
+      return true;
     }
-
-    // 激活按钮
-    activateBtn.addEventListener('click', () => {
-      const inputKey = keyInput.value.trim();
-      try {
-        const parts = inputKey.split('-');
-        if (parts.length !== 3 || parts[0] !== 'KEY') {
-          alert('密钥格式错误！正确格式如：KEY-20261231-XXXX');
-          return;
-        }
-        const expireDateStr = parts[1];
-        const expireDate = new Date(
-          expireDateStr.slice(0,4),
-          expireDateStr.slice(4,6) - 1,
-          expireDateStr.slice(6,8)
-        );
-        const today = new Date();
-
-        if (today > expireDate) {
-          alert('该密钥已过有效期！');
-          return;
-        }
-
-        localStorage.setItem('tool_license_key', inputKey);
-        alert('激活成功！');
-        keyInput.value = '';
-        checkPermission();
-      } catch (e) {
-        alert('无效的密钥，请检查格式');
-      }
-    });
 
     checkPermission();
 
